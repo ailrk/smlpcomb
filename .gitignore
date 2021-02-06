@@ -1,0 +1,13 @@
+
+# Created by https://www.toptal.com/developers/gitignore/api/standardml
+# Edit at https://www.toptal.com/developers/gitignore?templates=standardml
+
+### StandardML ###
+## Ignore all SML/NJ Compiler Manager build directories
+.cm/
+*.du
+*.ud
+pcomb
+test
+
+# End of https://www.toptal.com/developers/gitignore/api/standardml

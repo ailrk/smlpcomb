@@ -1,0 +1,7 @@
+{
+  "cm": {
+    "test": "test.cm",
+    "all": "pcomb.cm",
+    "make/onSave": "test.cm"
+  }
+}
