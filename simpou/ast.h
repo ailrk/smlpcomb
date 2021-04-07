@@ -21,26 +21,26 @@ public:
 };
 
 class NumberExpr : public Expr {
-  double value;
 
 public:
+  double value;
   NumberExpr(double value) : value(value) {}
   virtual llvm::Value *codegen(ASTVisitor<llvm::Value *> &visitor) override;
 };
 
 class VariableExpr : public Expr {
-  std::string name;
 
 public:
+  std::string name;
   VariableExpr(const std::string &name) : name(name) {}
   virtual llvm::Value *codegen(ASTVisitor<llvm::Value *> &visitor) override;
 };
 
 class BinaryExpr : public Expr {
+public:
   std::string op;
   std::unique_ptr<Expr> lhs, rhs;
 
-public:
   BinaryExpr(std::string op, std::unique_ptr<Expr> lhs,
              std::unique_ptr<Expr> rhs)
       : op(std::move(op)), lhs(std::move(lhs)), rhs(std::move(rhs)) {}
@@ -59,10 +59,10 @@ public:
 
 // function prototype
 class Prototype : public AST {
+public:
   std::string name;
   std::vector<std::string> args;
 
-public:
   Prototype(const std::string &name, std::vector<std::string> args)
       : name(name), args(args) {}
   virtual llvm::Value *codegen(ASTVisitor<llvm::Value *> &visitor) override;
@@ -71,10 +71,10 @@ public:
 };
 
 class Function : AST {
+public:
   std::unique_ptr<Prototype> prototype;
   std::unique_ptr<Expr> body;
 
-public:
   Function(std::unique_ptr<Prototype> proto, std::unique_ptr<Expr> body)
       : prototype(std::move(proto)), body(std::move(body)) {}
   virtual llvm::Value *codegen(ASTVisitor<llvm::Value *> &visitor) override;
