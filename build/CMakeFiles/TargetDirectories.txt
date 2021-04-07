@@ -1,3 +1,0 @@
-/home/jimmy/newDisk/Repo/simpou/build/CMakeFiles/rebuild_cache.dir
-/home/jimmy/newDisk/Repo/simpou/build/CMakeFiles/edit_cache.dir
-/home/jimmy/newDisk/Repo/simpou/build/CMakeFiles/simpou.dir

@@ -1,1 +1,0 @@
-clang++ -g CMakeFiles/demo1.dir/demo1.cc.o -o demo1 
