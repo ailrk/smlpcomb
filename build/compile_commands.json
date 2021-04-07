@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/jimmy/newDisk/Repo/simpou/build/demo",
+  "command": "clang++ -DSIMPOU_TEST_PARSER  -g  -Wall -Wextra -pedantic -Werror -std=gnu++20 -o CMakeFiles/demo1.dir/demo1.cc.o -c /home/jimmy/newDisk/Repo/simpou/demo/demo1.cc",
+  "file": "/home/jimmy/newDisk/Repo/simpou/demo/demo1.cc"
+}
+]

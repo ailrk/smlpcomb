@@ -1,0 +1,44 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/jimmy/newDisk/Repo/simpou/simpou/ast.h
+memory
+-
+string
+-
+vector
+-
+
+/home/jimmy/newDisk/Repo/simpou/simpou/lexer.h
+cstring
+-
+optional
+-
+string
+-
+variant
+-
+
+/home/jimmy/newDisk/Repo/simpou/simpou/parser.cc
+parser.h
+/home/jimmy/newDisk/Repo/simpou/simpou/parser.h
+iostream
+-
+
+/home/jimmy/newDisk/Repo/simpou/simpou/parser.h
+ast.h
+/home/jimmy/newDisk/Repo/simpou/simpou/ast.h
+lexer.h
+/home/jimmy/newDisk/Repo/simpou/simpou/lexer.h
+algorithm
+-
+string_view
+-
+unordered_map
+-
+

@@ -1,7 +1,0 @@
-Group is
-  $/basis.cm
-  src/util.sml
-  src/parser.sig
-  src/parser.sml
-  src/char.sig
-  src/char.sml

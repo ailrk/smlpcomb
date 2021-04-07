@@ -1,0 +1,1 @@
+/usr/bin/clang++ -g CMakeFiles/simpou.dir/simpou/parser.cc.o -o simpou 
