@@ -27,6 +27,9 @@ add_executable(simpou
   simpou/lexer.h
   simpou/parser.h
   simpou/parser.cc
+  simpou/error.h
+  simpou/codegen.h
+  simpou/codegen.cc
   )
 
 set_target_properties(simpou PROPERTIES
