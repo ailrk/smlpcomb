@@ -49,4 +49,26 @@ llvm::Value *ASTCodegenVisitor::visit(BinaryExpr &expr) {
   return log_error_v("unknown binary operator");
 }
 
+llvm::Value *ASTCodegenVisitor::visit(CallExpr &expr) {
+  llvm::Function *callee = module->getFunction(expr.func);
+  if (!callee) {
+    return log_error_v("referencing unknown function");
+  }
+
+  if (callee->size() != expr.args.size()) {
+    return log_error_v("wrong arity");
+  }
+
+  std::vector<llvm::Value *> args_v;
+  for (size_t i = 0; i != expr.args.size(); ++i) {
+    args_v.push_back(expr.args[i]->codegen(*this));
+    if (!args_v.back()) {
+      return nullptr;
+    }
+  }
+
+  return builder->CreateCall(callee, args_v, "call");
+}
+
+
 // llvm::Value *ASTCodegenVisitor::visit() { return ;}

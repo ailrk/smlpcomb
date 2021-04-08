@@ -48,10 +48,10 @@ public:
 };
 
 class CallExpr : public Expr {
+public:
   std::string func;
   std::vector<std::unique_ptr<Expr>> args;
 
-public:
   CallExpr(const std::string &func, std::vector<std::unique_ptr<Expr>> args)
       : func(func), args(std::move(args)) {}
   virtual llvm::Value *codegen(ASTVisitor<llvm::Value *> &visitor) override;
