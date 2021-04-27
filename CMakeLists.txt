@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(simpou VERSION 1.0
+project(pulogulamu VERSION 1.0
                DESCRIPTION "a monadic parser combinator libary"
                LANGUAGES CXX)
 
@@ -22,17 +22,17 @@ include(CMakePackageConfigHelpers)
 #   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 #   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/simplou>)
 
-add_executable(simpou
-  simpou/ast.h
-  simpou/lexer.h
-  simpou/parser.h
-  simpou/parser.cc
-  simpou/error.h
-  simpou/codegen.h
-  simpou/codegen.cc
+add_executable(pulogulamu
+  pulogulamu/ast.h
+  pulogulamu/lexer.h
+  pulogulamu/parser.h
+  pulogulamu/parser.cc
+  pulogulamu/error.h
+  pulogulamu/codegen.h
+  pulogulamu/codegen.cc
   )
 
-set_target_properties(simpou PROPERTIES
+set_target_properties(pulogulamu PROPERTIES
   C_VISIBILITY_PRESET       hidden
   CXX_VISIBILITY_PRESET     hidden
   VISIBILITY_INLINES_HIDDEN YES

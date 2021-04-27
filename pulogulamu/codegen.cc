@@ -70,6 +70,4 @@ llvm::Value *ASTCodegenVisitor::visit(CallExpr &expr) {
   return builder->CreateCall(callee, args_v, "call");
 }
 
-
-
 // llvm::Value *ASTCodegenVisitor::visit() { return ;}
