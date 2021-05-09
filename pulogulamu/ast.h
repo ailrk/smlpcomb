@@ -6,106 +6,105 @@
 #include <string>
 #include <vector>
 
-template <typename T> class ASTVisitor;
+template <typename T>
+class ASTVisitor;
 
+template <typename T, typename Visitor = ASTVisitor<T>>
 class AST {
-public:
-  virtual ~AST() = default;
-  virtual llvm::Value *codegen(ASTVisitor<llvm::Value *> &);
+  public:
+    virtual ~AST() = default;
+    virtual typename Visitor::type visit(Visitor &);
 };
 
-class Expr : public AST {
-public:
-  virtual ~Expr() = default;
-  virtual llvm::Value *codegen(ASTVisitor<llvm::Value *> &) override = 0;
+template <typename T, typename Visitor = ASTVisitor<T>>
+class Expr : public AST<T> {
+  public:
+    virtual ~Expr() = default;
+    virtual typename Visitor::type visit(Visitor &) override;
 };
 
-class NumberExpr : public Expr {
+template <typename T, typename Visitor = ASTVisitor<T>>
+class NumberExpr : public Expr<T> {
 
-public:
-  double value;
-  NumberExpr(double value) : value(value) {}
-  virtual llvm::Value *codegen(ASTVisitor<llvm::Value *> &visitor) override;
+  public:
+    double value;
+    NumberExpr(double value)
+        : value(value) {}
+    virtual typename Visitor::type visit(Visitor &) override;
 };
 
-class VariableExpr : public Expr {
+template <typename T, typename Visitor = ASTVisitor<T>>
+class VariableExpr : public Expr<T> {
 
-public:
-  std::string name;
-  VariableExpr(const std::string &name) : name(name) {}
-  virtual llvm::Value *codegen(ASTVisitor<llvm::Value *> &visitor) override;
+  public:
+    std::string name;
+    VariableExpr(const std::string &name)
+        : name(name) {}
+    virtual typename Visitor::type visit(Visitor &) override;
 };
 
-class BinaryExpr : public Expr {
-public:
-  std::string op;
-  std::unique_ptr<Expr> lhs, rhs;
+template <typename T, typename Visitor = ASTVisitor<T>>
+class BinaryExpr : public Expr<T> {
+  public:
+    std::string op;
+    std::unique_ptr<Expr<T>> lhs, rhs;
 
-  BinaryExpr(std::string op, std::unique_ptr<Expr> lhs,
-             std::unique_ptr<Expr> rhs)
-      : op(std::move(op)), lhs(std::move(lhs)), rhs(std::move(rhs)) {}
-  virtual llvm::Value *codegen(ASTVisitor<llvm::Value *> &visitor) override;
+    BinaryExpr(std::string op, std::unique_ptr<Expr<T>> lhs,
+               std::unique_ptr<Expr<T>> rhs)
+        : op(std::move(op))
+        , lhs(std::move(lhs))
+        , rhs(std::move(rhs)) {}
+    virtual typename Visitor::type visit(Visitor &) override;
 };
 
-class CallExpr : public Expr {
-public:
-  std::string func;
-  std::vector<std::unique_ptr<Expr>> args;
+template <typename T, typename Visitor = ASTVisitor<T>>
+class CallExpr : public Expr<T> {
+  public:
+    std::string func;
+    std::vector<std::unique_ptr<Expr<T>>> args;
 
-  CallExpr(const std::string &func, std::vector<std::unique_ptr<Expr>> args)
-      : func(func), args(std::move(args)) {}
-  virtual llvm::Value *codegen(ASTVisitor<llvm::Value *> &visitor) override;
+    CallExpr(const std::string &func,
+             std::vector<std::unique_ptr<Expr<T>>> args)
+        : func(func)
+        , args(std::move(args)) {}
+    virtual typename Visitor::type visit(Visitor &) override;
 };
 
 // function prototype
-class Prototype : public AST {
-public:
-  std::string name;
-  std::vector<std::string> args;
+template <typename T, typename Visitor = ASTVisitor<T>>
+class Prototype : public AST<T> {
+  public:
+    std::string name;
+    std::vector<std::string> args;
 
-  Prototype(const std::string &name, std::vector<std::string> args)
-      : name(name), args(args) {}
-  virtual llvm::Value *codegen(ASTVisitor<llvm::Value *> &visitor) override;
+    Prototype(const std::string &name, std::vector<std::string> args)
+        : name(name)
+        , args(args) {}
 
-  const std::string &get_name() const { return name; }
+    virtual typename Visitor::type visit(Visitor &) override;
+    const std::string &get_name() const { return name; }
 };
 
-class Function : AST {
-public:
-  std::unique_ptr<Prototype> prototype;
-  std::unique_ptr<Expr> body;
+template <typename T, typename Visitor = ASTVisitor<T>>
+class Function : AST<T> {
+  public:
+    std::unique_ptr<Prototype<T>> prototype;
+    std::unique_ptr<Expr<T>> body;
 
-  Function(std::unique_ptr<Prototype> proto, std::unique_ptr<Expr> body)
-      : prototype(std::move(proto)), body(std::move(body)) {}
-  virtual llvm::Value *codegen(ASTVisitor<llvm::Value *> &visitor) override;
+    Function(std::unique_ptr<Prototype<T>> proto, std::unique_ptr<Expr<T>> body)
+        : prototype(std::move(proto))
+        , body(std::move(body)) {}
+    virtual llvm::Value *codegen(ASTVisitor<llvm::Value *> &visitor) override;
 };
 
-template <typename T> class ASTVisitor {
-public:
-  virtual T visit(NumberExpr &expr) = 0;
-  virtual T visit(VariableExpr &expr) = 0;
-  virtual T visit(BinaryExpr &expr) = 0;
-  virtual T visit(CallExpr &expr) = 0;
-  virtual T visit(Prototype &expr) = 0;
-  virtual T visit(Function &expr) = 0;
+template <typename T>
+class ASTVisitor {
+  public:
+    using type = std::decay_t<T>;
+    virtual T visit(NumberExpr<T> &expr) = 0;
+    virtual T visit(VariableExpr<T> &expr) = 0;
+    virtual T visit(BinaryExpr<T> &expr) = 0;
+    virtual T visit(CallExpr<T> &expr) = 0;
+    virtual T visit(Prototype<T> &expr) = 0;
+    virtual T visit(Function<T> &expr) = 0;
 };
-
-llvm::Value *NumberExpr::codegen(ASTVisitor<llvm::Value *> &visitor) {
-  return visitor.visit(*this);
-}
-
-llvm::Value *BinaryExpr::codegen(ASTVisitor<llvm::Value *> &visitor) {
-  return visitor.visit(*this);
-}
-
-llvm::Value *CallExpr::codegen(ASTVisitor<llvm::Value *> &visitor) {
-  return visitor.visit(*this);
-}
-
-llvm::Value *Prototype::codegen(ASTVisitor<llvm::Value *> &visitor) {
-  return visitor.visit(*this);
-}
-
-llvm::Value *Function::codegen(ASTVisitor<llvm::Value *> &visitor) {
-  return visitor.visit(*this);
-}

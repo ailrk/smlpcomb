@@ -13,11 +13,11 @@
 
 // can make other visitors too.
 class ASTCodegenVisitor : public ASTVisitor<llvm::Value *> {
-public:
-  virtual llvm::Value *visit(NumberExpr &expr) override;
-  virtual llvm::Value *visit(VariableExpr &expr) override;
-  virtual llvm::Value *visit(BinaryExpr &expr) override;
-  virtual llvm::Value *visit(CallExpr &expr) override;
-  virtual llvm::Value *visit(Prototype &expr) override;
-  virtual llvm::Value *visit(Function &expr) override;
+  public:
+    virtual llvm::Value *visit(NumberExpr<type> &expr) override;
+    virtual llvm::Value *visit(VariableExpr<type> &expr) override;
+    virtual llvm::Value *visit(BinaryExpr<type> &expr) override;
+    virtual llvm::Value *visit(CallExpr<type> &expr) override;
+    virtual llvm::Value *visit(Prototype<type> &expr) override;
+    virtual llvm::Value *visit(Function<type> &expr) override;
 };
