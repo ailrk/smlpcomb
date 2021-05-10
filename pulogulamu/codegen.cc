@@ -8,71 +8,80 @@ static std::unordered_map<std::string, llvm::Value *> environment;
 
 llvm::Value *
 log_error_v(const char *str) {
-    log_error<Expr<llvm::Value *>>(str);
+    log_error<Expr>(str);
     return nullptr;
 }
 
-// TODO visibility.
-ASTCodegenVisitor::type
-ASTCodegenVisitor::visit(NumberExpr<type> &expr) {
-    return llvm::ConstantFP::get(*context, llvm::APFloat(expr.value));
+ASTCodegenVisitor &
+ASTCodegenVisitor::visit(NumberExpr &expr) {
+    result = llvm::ConstantFP::get(*context, llvm::APFloat(expr.value));
+    return *this;
 }
 
-ASTCodegenVisitor::type
-ASTCodegenVisitor::visit(VariableExpr<type> &expr) {
+ASTCodegenVisitor &
+ASTCodegenVisitor::visit(VariableExpr &expr) {
     llvm::Value *v = environment[expr.name];
     if (!v) {
-        return log_error_v("unknown variable name");
+        result = log_error_v("unknown variable name");
+    } else {
+        result = v;
     }
-    return v;
+    return *this;
 }
 
-ASTCodegenVisitor::type
-ASTCodegenVisitor::visit(BinaryExpr<type> &expr) {
-    llvm::Value *lhs = expr.lhs->visit(*this);
-    llvm::Value *rhs = expr.rhs->visit(*this);
+ASTCodegenVisitor &
+ASTCodegenVisitor::visit(BinaryExpr &expr) {
+    // ASTCodegenVisitor &ref =
+    //     dynamic_cast<ASTCodegenVisitor &>(expr.lhs->accept(*this));
+
+    llvm::Value *lhs = expr.lhs->accept(*this).get_result<type>();
+    llvm::Value *rhs = expr.rhs->accept(*this).get_result<type>();
 
     if (!lhs || !rhs) {
-        return nullptr;
-    }
-
-    if (expr.op == "+") {
-        return builder->CreateFAdd(lhs, rhs, "add");
+        result = nullptr;
+    } else if (expr.op == "+") {
+        result = builder->CreateFAdd(lhs, rhs, "add");
     } else if (expr.op == "-") {
-        return builder->CreateFSub(lhs, rhs, "sub");
+        result = builder->CreateFSub(lhs, rhs, "sub");
     } else if (expr.op == "*") {
-        return builder->CreateFMul(lhs, rhs, "mul");
+        result = builder->CreateFMul(lhs, rhs, "mul");
     } else if (expr.op == "/") {
-        return builder->CreateFDiv(lhs, rhs, "div");
+        result = builder->CreateFDiv(lhs, rhs, "div");
     } else if (expr.op == "<") {
         lhs = builder->CreateFCmpULT(lhs, rhs, "lt");
-        return builder->CreateUIToFP(lhs, llvm::Type::getDoubleTy(*context),
-                                     "bool");
+        result = builder->CreateUIToFP(lhs, llvm::Type::getDoubleTy(*context),
+                                       "bool");
     }
 
-    return log_error_v("unknown binary operator");
+    result = log_error_v("unknown binary operator");
+    return *this;
 }
 
-ASTCodegenVisitor::type
-ASTCodegenVisitor::visit(CallExpr<type> &expr) {
+ASTCodegenVisitor &
+ASTCodegenVisitor::visit(CallExpr &expr) {
     llvm::Function *callee = module->getFunction(expr.func);
     if (!callee) {
-        return log_error_v("referencing unknown function");
-    }
-
-    if (callee->size() != expr.args.size()) {
-        return log_error_v("wrong arity");
+        result = log_error_v("referencing unknown function");
+        return *this;
+    } else if (callee->size() != expr.args.size()) {
+        result = log_error_v("wrong arity");
+        return *this;
     }
 
     std::vector<llvm::Value *> args_v;
     for (size_t i = 0; i != expr.args.size(); ++i) {
-        args_v.push_back(expr.args[i]->visit(*this));
+        args_v.push_back(expr.args[i]->accept(*this).get_result<type>());
         if (!args_v.back()) {
-            return nullptr;
+            result = nullptr;
+            return *this;
         }
     }
 
-    return builder->CreateCall(callee, args_v, "call");
+    result = builder->CreateCall(callee, args_v, "call");
+    return *this;
 }
 
-// llvm::Value *ASTCodegenVisitor::visit() { return ;}
+
+ASTCodegenVisitor &
+
+// llvm::Value *ASTCodegenVisitor::codegen() { return ;}

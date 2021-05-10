@@ -12,12 +12,23 @@
 #include <llvm/IR/Verifier.h>
 
 // can make other visitors too.
-class ASTCodegenVisitor : public ASTVisitor<llvm::Value *> {
+class ASTCodegenVisitor : public ASTVisitor {
   public:
-    virtual llvm::Value *visit(NumberExpr<type> &expr) override;
-    virtual llvm::Value *visit(VariableExpr<type> &expr) override;
-    virtual llvm::Value *visit(BinaryExpr<type> &expr) override;
-    virtual llvm::Value *visit(CallExpr<type> &expr) override;
-    virtual llvm::Value *visit(Prototype<type> &expr) override;
-    virtual llvm::Value *visit(Function<type> &expr) override;
+    using type = llvm::Value *;
+
+  public:
+    type result;
+    virtual ASTCodegenVisitor &visit(NumberExpr &expr) override;
+    virtual ASTCodegenVisitor &visit(VariableExpr &expr) override;
+    virtual ASTCodegenVisitor &visit(BinaryExpr &expr) override;
+    virtual ASTCodegenVisitor &visit(CallExpr &expr) override;
+    virtual ASTCodegenVisitor &visit(Prototype &expr) override;
+    virtual ASTCodegenVisitor &visit(Function &expr) override;
 };
+
+// pull value out of a vistor.
+template <>
+ASTCodegenVisitor::type
+ASTVisitor::get_result<ASTCodegenVisitor::type>() {
+    return dynamic_cast<ASTCodegenVisitor &>(*this).result;
+}

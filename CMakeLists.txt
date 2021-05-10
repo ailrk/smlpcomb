@@ -7,10 +7,10 @@ project(pulogulamu VERSION 1.0
 message("CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}")
 
 # options
-# option(SIMPOU_BUILD_FZZER "Build fuzzer tess.")
-# option(SIMPOU_BUILD_TEST "Build unit tests")
-# option(SIMPOU_BUILD_DEMO "Build demo programs")
-option(SIMPOU_TEST_PARSER "Build demo programs")
+# option(PULOGULAMU_BUILD_FZZER "Build fuzzer tess.")
+# option(PULOGULAMU_BUILD_TEST "Build unit tests")
+# option(PULOGULAMU_BUILD_DEMO "Build demo programs")
+# option(PULOGULAMU_TEST_PARSER "Build demo programs")
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -22,7 +22,16 @@ include(CMakePackageConfigHelpers)
 #   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 #   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/simplou>)
 
+find_package(LLVM REQUIRED CONFIG)
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig in ${LLVM_DIR}")
+
+include_directories(${LLVM_INCLUDE_DIRS})
+add_definitions(${LLVM_DEFINITIONS})
+llvm_map_components_to_libnames(llvm_libs support core irreader)
+
 add_executable(pulogulamu
+  pulogulamu/main.cc
   pulogulamu/ast.h
   pulogulamu/lexer.h
   pulogulamu/parser.h
@@ -32,6 +41,7 @@ add_executable(pulogulamu
   pulogulamu/codegen.cc
   )
 
+target_link_libraries(pulogulamu ${llvm_libs})
 set_target_properties(pulogulamu PROPERTIES
   C_VISIBILITY_PRESET       hidden
   CXX_VISIBILITY_PRESET     hidden
@@ -44,23 +54,23 @@ if (TML_BUILD_FUZZER AND TML_BUILD_TEST)
 endif()
 
 # test targets
-if(SIMPOU_BUILD_FUZZER)
+if(PULOGULAMU_BUILD_FUZZER)
   message("simplou: Building fuzz tests")
   add_subdirectory(fuzzer)
 endif()
 
-if (SIMPOU_BUILD_TEST)
+if (PULOGULAMU_BUILD_TEST)
   message("simplou: Building unit tests")
   add_subdirectory(test)
 endif()
 
-if (SIMPOU_BUILD_DEMO)
+if (PULOGULAMU_BUILD_DEMO)
   message("simplou: Building demo")
   add_subdirectory(demo)
 endif()
 
 
-if (SIMPOU_TEST_PARSER)
+if (PULOGULAMU_TEST_PARSER)
   message("simplou: Building demo")
-  add_compile_definitions(SIMPOU_TEST_PARSER)
+  add_compile_definitions(PULOGULAMU_TEST_PARSER)
 endif()
