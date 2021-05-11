@@ -18,6 +18,7 @@ class ASTCodegenVisitor : public ASTVisitor {
 
   public:
     type result;
+
     virtual ASTCodegenVisitor &visit(NumberExpr &expr) override;
     virtual ASTCodegenVisitor &visit(VariableExpr &expr) override;
     virtual ASTCodegenVisitor &visit(BinaryExpr &expr) override;
@@ -29,6 +30,9 @@ class ASTCodegenVisitor : public ASTVisitor {
 // pull value out of a vistor.
 template <>
 ASTCodegenVisitor::type
-ASTVisitor::get_result<ASTCodegenVisitor::type>() {
+ASTVisitor::get<ASTCodegenVisitor>() {
     return dynamic_cast<ASTCodegenVisitor &>(*this).result;
 }
+
+void
+init_module();

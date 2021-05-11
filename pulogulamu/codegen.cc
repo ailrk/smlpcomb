@@ -34,8 +34,8 @@ ASTCodegenVisitor::visit(BinaryExpr &expr) {
     // ASTCodegenVisitor &ref =
     //     dynamic_cast<ASTCodegenVisitor &>(expr.lhs->accept(*this));
 
-    llvm::Value *lhs = expr.lhs->accept(*this).get_result<type>();
-    llvm::Value *rhs = expr.rhs->accept(*this).get_result<type>();
+    llvm::Value *lhs = expr.lhs->accept(*this).get<ASTCodegenVisitor>();
+    llvm::Value *rhs = expr.rhs->accept(*this).get<ASTCodegenVisitor>();
 
     if (!lhs || !rhs) {
         result = nullptr;
@@ -49,11 +49,13 @@ ASTCodegenVisitor::visit(BinaryExpr &expr) {
         result = builder->CreateFDiv(lhs, rhs, "div");
     } else if (expr.op == "<") {
         lhs = builder->CreateFCmpULT(lhs, rhs, "lt");
+        // converet bool to float.
         result = builder->CreateUIToFP(lhs, llvm::Type::getDoubleTy(*context),
                                        "bool");
+    } else {
+        result = log_error_v("unknown binary operator");
     }
 
-    result = log_error_v("unknown binary operator");
     return *this;
 }
 
@@ -68,20 +70,77 @@ ASTCodegenVisitor::visit(CallExpr &expr) {
         return *this;
     }
 
-    std::vector<llvm::Value *> args_v;
+    std::vector<llvm::Value *> args;
     for (size_t i = 0; i != expr.args.size(); ++i) {
-        args_v.push_back(expr.args[i]->accept(*this).get_result<type>());
-        if (!args_v.back()) {
+        args.push_back(expr.args[i]->accept(*this).get<ASTCodegenVisitor>());
+        if (!args.back()) {
             result = nullptr;
             return *this;
         }
     }
 
-    result = builder->CreateCall(callee, args_v, "call");
+    result = builder->CreateCall(callee, args, "call");
     return *this;
 }
 
+ASTCodegenVisitor &
+ASTCodegenVisitor::visit(Prototype &func) {
+    std::vector<llvm::Type *> doubles{ func.args.size(),
+                                       llvm::Type::getDoubleTy(*context) };
+    llvm::FunctionType *ft = llvm::FunctionType::get(
+        llvm::Type::getDoubleTy(*context), doubles, false);
+
+    llvm::Function *f = llvm::Function::Create(
+        ft, llvm::Function::ExternalLinkage, func.name, module.get());
+
+    unsigned idx = 0;
+    for (auto &arg : f->args()) {
+        arg.setName(func.args[idx++]);
+    }
+
+    result = f;
+    return *this;
+}
 
 ASTCodegenVisitor &
+ASTCodegenVisitor::visit(Function &func) {
+    llvm::Function *f = module->getFunction(func.prototype->get_name());
 
-// llvm::Value *ASTCodegenVisitor::codegen() { return ;}
+    if (!f) {
+        f = static_cast<llvm::Function *>(
+            func.prototype->accept(*this).get<ASTCodegenVisitor>());
+    }
+
+    if (!f) {
+        result = nullptr;
+        return *this;
+    }
+
+    llvm::BasicBlock *bb = llvm::BasicBlock::Create(*context, "entry", f);
+    builder->SetInsertPoint(bb);
+
+    // add arguments into the environment.
+    environment.clear();
+    for (auto &arg : f->args()) {
+        environment[std::string{ arg.getName() }] = &arg;
+    }
+
+    if (llvm::Value *ret = func.body->accept(*this).get<ASTCodegenVisitor>()) {
+        builder->CreateRet(ret);
+        llvm::verifyFunction(*f);
+        result = f;
+        return *this;
+    }
+
+    f->eraseFromParent();
+    result = nullptr;
+    return *this;
+}
+
+void
+init_module() {
+    context = std::make_unique<llvm::LLVMContext>();
+    module = std::make_unique<llvm::Module>();
+
+    builder = std::make_unique<llvm::IRBuilder<>>(*context);
+}

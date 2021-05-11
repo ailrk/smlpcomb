@@ -90,7 +90,7 @@ class Function : AST {
 class ASTVisitor {
   public:
     template <typename T>
-    T get_result();
+    typename T::type get();
 
     virtual ASTVisitor &visit(NumberExpr &expr) = 0;
     virtual ASTVisitor &visit(VariableExpr &expr) = 0;
