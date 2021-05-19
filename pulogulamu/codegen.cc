@@ -1,9 +1,16 @@
 #include "codegen.h"
 #include "error.h"
 
+// llvm context.
 static std::unique_ptr<llvm::LLVMContext> context;
+
+// top level IR construct.
+// module owns memory for all IR generated.
 static std::unique_ptr<llvm::Module> module;
+
 static std::unique_ptr<llvm::IRBuilder<>> builder;
+
+// symbol table for current scope.
 static std::unordered_map<std::string, llvm::Value *> environment;
 
 llvm::Value *
@@ -71,8 +78,9 @@ ASTCodegenVisitor::visit(CallExpr &expr) {
     }
 
     std::vector<llvm::Value *> args;
-    for (size_t i = 0; i != expr.args.size(); ++i) {
-        args.push_back(expr.args[i]->accept(*this).get<ASTCodegenVisitor>());
+
+    for (auto &arg : expr.args) {
+        args.push_back(arg->accept(*this).get<ASTCodegenVisitor>());
         if (!args.back()) {
             result = nullptr;
             return *this;
@@ -87,6 +95,7 @@ ASTCodegenVisitor &
 ASTCodegenVisitor::visit(Prototype &func) {
     std::vector<llvm::Type *> doubles{ func.args.size(),
                                        llvm::Type::getDoubleTy(*context) };
+
     llvm::FunctionType *ft = llvm::FunctionType::get(
         llvm::Type::getDoubleTy(*context), doubles, false);
 
@@ -140,7 +149,6 @@ ASTCodegenVisitor::visit(Function &func) {
 void
 init_module() {
     context = std::make_unique<llvm::LLVMContext>();
-    module = std::make_unique<llvm::Module>();
-
+    module = std::make_unique<llvm::Module>("pulogulamu", *context);
     builder = std::make_unique<llvm::IRBuilder<>>(*context);
 }
